@@ -343,17 +343,22 @@ export async function _createServer(
   inlineConfig: InlineConfig = {},
   options: { ws: boolean },
 ): Promise<ViteDevServer> {
+  // * 解析 config ->
   const config = await resolveConfig(inlineConfig, 'serve')
 
   const { root, server: serverConfig } = config
+  // * 解析 https 相关配置
   const httpsOptions = await resolveHttpsConfig(config.server.https)
   const { middlewareMode } = serverConfig
 
+  // * 解析 watch 相关配置
   const resolvedWatchOptions = resolveChokidarOptions(config, {
     disableGlobbing: true,
     ...serverConfig.watch,
   })
 
+  // ** 初始化 middleware，这是个洋葱模型的 http server
+  // ** 根据是否是 middleware 模式，来决定是否创建 http server
   const middlewares = connect() as Connect.Server
   const httpServer = middlewareMode
     ? null
